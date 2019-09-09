@@ -26,7 +26,7 @@ char **do_parsing(char *command)
   //printf("%s command=",command);
   int b_size = BUFFER;
   int count =0,count1=0; 
-  char **args = malloc(b_size * sizeof(char*));
+  char **args = (char**)malloc(b_size * sizeof(char*));
   if (!args)
   {
     printf("allocation error\n");
@@ -60,37 +60,56 @@ void redirection(char **temp_arr,char **args,int c,int flag)
    else if (process_id == 0) 
     {
     if(flag==1)
+     {
       file_dis=open(args[c+1],O_WRONLY|O_TRUNC|O_CREAT,0644);
+     }
     else
+     {
       file_dis=open(args[c+1],O_APPEND|O_WRONLY|O_CREAT,0644);
+     }
     if(file_dis<0)
+    {
     printf("error");
+    }
     dup2(file_dis,STDOUT_FILENO);
      close(file_dis);
     execvp(temp_arr[0],temp_arr);
     count=0;
     exit(1);
     }
-   if ((process_id = waitpid(process_id, &status, 0)) < 0)
+    process_id = waitpid(process_id, &status, 0);
+   if (process_id < 0)
+    {
     printf("waitpid error");
-
+    }
 }
 
 void execute(char **command,int length)
 {
+char *tem="/home/jayakrishna";
 if(strcmp(command[0],built[0])==0)
-{
-  if(chdir(command[1])!=0)
+{ 
+  if(strcmp(command[1],"~")==0)
+  {
+  if(chdir(tem)!=0)
+  {
   printf("error");
+  }
+  }
+  else if(chdir(command[1])!=0)
+  {
+  printf("error");
+  }
 }
 
 else if(strcmp(command[0],built[1])==0)
+{
   exit(0);
-
+}
 else
 {
 int j,flag;
-  char ** temp=malloc(BUFFER*sizeof(char *));
+  char ** temp=(char**)malloc(BUFFER*sizeof(char *));
   for(i=0;i<count;i++)
    {
     if(strcmp(command[i],redirec[0])==0)
@@ -114,15 +133,17 @@ int j,flag;
    {
   count=0;
   if((process_id=fork())<0)
+   {
    printf("fork error");
+   }
    else if (process_id == 0) 
     {
     execvp(command[0],command);
     printf("error in execution:");
-    
     exit(1);
     }
-   if ((process_id = waitpid(process_id, &status, 0)) < 0)
+    process_id = waitpid(process_id, &status, 0);
+   if ((process_id) < 0)
     printf("waitpid error");
    } 
 }
@@ -167,19 +188,24 @@ while(count_pipes >=0)
 {
   pipe(filedis);
   if((process_id=fork())<0)
+    {
     printf("fork error");
+    }
    else if(process_id==0)
      {
         dup2(filedis1,0);
        if(count_pipes!=0)
+        {
         dup2(filedis[1],1);
+        }
       close(filedis[1]);
       execvp(temp_arr[i][0],temp_arr[i]);
       exit(1);
      }
    else
     {  
-      if ((process_id = waitpid(process_id, &status, 0)) < 0)
+      process_id = waitpid(process_id, &status, 0);
+      if ((process_id ) < 0)
       {
       printf("waitpid error");
       } 
@@ -190,8 +216,8 @@ while(count_pipes >=0)
  count_pipes--;
  i++;
  }  
-   
 }
+
 void reads()
 {
 int value=0;
@@ -215,7 +241,9 @@ while(fgets(command,size,stdin)!= NULL)
   else
   {
   if(command1[0]!=0)
+  {
   execute(command1,strlen(command));
+  }
   }
   count_pipes=0;
   printf("%%");
